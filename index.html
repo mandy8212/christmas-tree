@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cyberpunk Rainbow Particle Christmas Tree 2026</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #030308;
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    }
+    canvas {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+    }
+    /* 赛博朋克风格UI叠加层 */
+    .overlay-ui {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 10;
+      color: #00ffcc;
+      font-family: monospace;
+      font-size: 11px;
+      pointer-events: none;
+      letter-spacing: 2px;
+      text-shadow: 0 0 8px rgba(0, 255, 204, 0.7);
+      opacity: 0.8;
+    }
+    .overlay-ui .tag {
+      color: #ff007f;
+    }
+    .title-box {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      text-align: center;
+      pointer-events: none;
+    }
+    .title-box h1 {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: 6px;
+      color: #ffffff;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+      text-shadow: 0 0 10px #ff007f, 0 0 20px #00ffff, 0 0 30px #ff007f;
+      animation: cyber-glow 2s ease-in-out infinite alternate;
+    }
+    .title-box p {
+      font-size: 12px;
+      color: #00ffcc;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      text-shadow: 0 0 5px rgba(0, 255, 204, 0.6);
+    }
+    @keyframes cyber-glow {
+      0% { text-shadow: 0 0 8px #ff007f, 0 0 15px #00ffff; }
+      100% { text-shadow: 0 0 15px #00ffff, 0 0 30px #ff007f, 0 0 40px #00ffcc; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="overlay-ui">
+    <div>SYS: <span class="tag">CYBER_TREE_v2.0_RAINBOW</span></div>
+    <div>PARTICLES: <span class="tag">ACTIVE // 1800+</span></div>
+    <div>FREQ: <span class="tag">60HZ // 3D_MATRIX</span></div>
+    <div>COLOR: <span class="tag">SPECTRUM_CYCLE_AUTO</span></div>
+  </div>
+
+  <div class="title-box">
+    <h1>MERRY CHRISTMAS</h1>
+    <p>CYBERPUNK PARTICLE MATRIX // 2026</p>
+  </div>
+
+  <canvas id="cyberCanvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById('cyberCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let width, height;
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // 基础配置
+    const particles = [];
+    const particleCount = 1800; // 粒子数量
+    const snows = [];
+    const snowCount = 120;
+    const digitalBeams = []; // 上升数据光束
+
+    let angleY = 0; // 旋转角度
+    let globalHueOffset = 0; // 全局色相变幻速度
+
+    // 初始化圣诞树粒子 (基于3D锥形螺旋与分形噪声)
+    for (let i = 0; i < particleCount; i++) {
+      const ratio = i / particleCount; // 0 到 1 (树顶到树底)
+      
+      // 形成赛博圆锥形螺旋
+      const radius = Math.pow(ratio, 1.2) * 190 + 5; // 下大上小
+      const turns = 18 * Math.PI * 2; // 螺旋圈数
+      const theta = ratio * turns + (Math.random() * 0.4); 
+      
+      // Y轴：树顶是 -230，树底是 +190
+      const y = -230 + ratio * 420;
+      
+      // 3D 坐标
+      const x = Math.cos(theta) * radius;
+      const z = Math.sin(theta) * radius;
+
+      // 粒子属性
+      particles.push({
+        baseX: x,
+        baseY: y,
+        baseZ: z,
+        x: x,
+        y: y,
+        z: z,
+        ratio: ratio,
+        theta: theta,
+        radius: radius,
+        size: Math.random() * 2.2 + 0.8,
+        speed: 0.02 + Math.random() * 0.03,
+        pulseOffset: Math.random() * Math.PI * 2,
+        hueSeed: Math.random() * 360,
+        // 部分粒子作为高亮装饰节点/全息魔方
+        isDecor: Math.random() < 0.12,
+        decorType: Math.floor(Math.random() * 3) // 0:球, 1:菱形, 2:环
+      });
+    }
+
+    // 初始化赛博数码降雪
+    for (let i = 0; i < snowCount; i++) {
+      snows.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        z: Math.random() * 400 - 200,
+        size: Math.random() * 2 + 0.5,
+        speed: Math.random() * 1.5 + 0.6,
+        alpha: Math.random() * 0.6 + 0.2,
+        color: Math.random() < 0.3 ? '#00ffff' : '#ffffff'
+      });
+    }
+
+    // 初始化上升数据光束
+    for (let i = 0; i < 25; i++) {
+      digitalBeams.push({
+        x: (Math.random() - 0.5) * 380,
+        y: Math.random() * 400 - 180,
+        z: (Math.random() - 0.5) * 380,
+        length: Math.random() * 40 + 15,
+        speed: Math.random() * 2 + 1,
+        hue: Math.random() * 360
+      });
+    }
+
+    // 绘制3D全息科技树顶星
+    function drawCyberStar(ctx, cx, cy, size, hue) {
+      ctx.save();
+      ctx.shadowBlur = 25;
+      ctx.shadowColor = `hsl(${hue}, 100%, 70%)`;
+      ctx.lineWidth = 1.5;
+
+      const spikes = 8;
+      const innerRadius = size * 0.4;
+      const outerRadius = size;
+      let rot = Math.PI / 2 * 3;
+      let step = Math.PI / spikes;
+
+      // 外星芒
+      ctx.beginPath();
+      for (let i = 0; i < spikes * 2; i++) {
+        let r = (i % 2 === 0) ? outerRadius : innerRadius;
+        let x = cx + Math.cos(rot) * r;
+        let y = cy + Math.sin(rot) * r;
+        ctx.lineTo(x, y);
+        rot += step;
+      }
+      ctx.closePath();
+      ctx.fillStyle = `hsla(${hue}, 100%, 85%, 0.8)`;
+      ctx.strokeStyle = `hsl(${(hue + 180) % 360}, 100%, 75%)`;
+      ctx.fill();
+      ctx.stroke();
+
+      // 内层几何十字/电路星环
+      ctx.beginPath();
+      ctx.arc(cx, cy, size * 0.35, 0, Math.PI * 2);
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
+
+      // 十字光束
+      ctx.beginPath();
+      ctx.moveTo(cx - size * 1.5, cy); ctx.lineTo(cx + size * 1.5, cy);
+      ctx.moveTo(cx, cy - size * 1.5); ctx.lineTo(cx, cy + size * 1.5);
+      ctx.strokeStyle = `hsla(${hue}, 100%, 75%, 0.5)`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    // 动画循环
+    function animate() {
+      // 拖尾特效，形成赛博光痕
+      ctx.fillStyle = 'rgba(3, 3, 10, 0.16)';
+      ctx.fillRect(0, 0, width, height);
+
+      angleY += 0.012; // 自动旋转
+      globalHueOffset += 0.6; // 彩虹色相流转
+
+      const fov = 420; // 3D 视角透视距离
+      const cx = width / 2;
+      const cy = height / 2 - 20;
+
+      // 1. 绘制背景网格/地表反射线
+      ctx.strokeStyle = 'rgba(0, 255, 204, 0.05)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 15; i++) {
+        let gridY = height * 0.72 + i * 22;
+        ctx.beginPath();
+        ctx.moveTo(0, gridY);
+        ctx.lineTo(width, gridY);
+        ctx.stroke();
+      }
+
+      // 2. 更新并绘制雪花
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      for (let s of snows) {
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+        ctx.fillStyle = s.color;
+        ctx.fill();
+
+        s.y += s.speed;
+        s.x += Math.sin(s.y * 0.02) * 0.5;
+        if (s.y > height) {
+          s.y = 0;
+          s.x = Math.random() * width;
+        }
+      }
+
+      // 3. 计算并排序3D粒子（实现前后遮挡纵深感）
+      const projected = [];
+
+      for (let p of particles) {
+        // 让粒子产生赛博波动与微颤
+        const pulse = Math.sin(angleY * 4 + p.pulseOffset) * 4;
+        const currentRadius = p.radius + pulse;
+
+        // 3D 旋转变换 (绕 Y 轴)
+        const rotX = Math.cos(p.theta + angleY) * currentRadius;
+        const rotZ = Math.sin(p.theta + angleY) * currentRadius;
+        const rotY = p.y;
+
+        // 透视投影
+        const scale = fov / (fov + rotZ + 180);
+        const x2d = cx + rotX * scale;
+        const y2d = cy + rotY * scale;
+
+        // 赛博七彩变色逻辑：根据高度(ratio)、角度(theta)与时间(globalHueOffset)混合生成彩虹渐变
+        const hue = (p.ratio * 260 + (p.theta / (Math.PI * 2)) * 80 + globalHueOffset) % 360;
+
+        projected.push({
+          x2d: x2d,
+          y2d: y2d,
+          z: rotZ,
+          scale: scale,
+          size: p.size,
+          hue: hue,
+          isDecor: p.isDecor,
+          decorType: p.decorType,
+          ratio: p.ratio
+        });
+      }
+
+      // 4. 投影光束更新与转换
+      for (let b of digitalBeams) {
+        b.y -= b.speed;
+        if (b.y < -230) {
+          b.y = 190;
+          b.x = (Math.random() - 0.5) * 350;
+        }
+        const rotX = b.x * Math.cos(angleY) - b.z * Math.sin(angleY);
+        const rotZ = b.x * Math.sin(angleY) + b.z * Math.cos(angleY);
+        const scale = fov / (fov + rotZ + 180);
+        
+        projected.push({
+          type: 'beam',
+          x2d: cx + rotX * scale,
+          y2d: cy + b.y * scale,
+          y2dEnd: cy + (b.y + b.length) * scale,
+          z: rotZ,
+          hue: (b.hue + globalHueOffset) % 360,
+          scale: scale
+        });
+      }
+
+      // 按 Z 深度从后往前排序
+      projected.sort((a, b) => b.z - a.z);
+
+      // 5. 渲染排序后的粒子/线条/光束
+      for (let p of projected) {
+        if (p.type === 'beam') {
+          // 渲染数据光束
+          ctx.beginPath();
+          ctx.moveTo(p.x2d, p.y2d);
+          ctx.lineTo(p.x2d, p.y2dEnd);
+          ctx.strokeStyle = `hsla(${p.hue}, 100%, 70%, ${0.15 * p.scale})`;
+          ctx.lineWidth = 1.5 * p.scale;
+          ctx.stroke();
+          continue;
+        }
+
+        // 渲染树身粒子
+        const alpha = Math.min(1, 0.4 + p.scale * 0.6);
+        ctx.shadowBlur = p.isDecor ? 12 : 0;
+        ctx.shadowColor = `hsl(${p.hue}, 100%, 65%)`;
+
+        ctx.beginPath();
+        if (p.isDecor) {
+          // 赛博全息装饰挂件 (菱形/大光球/多边形)
+          ctx.arc(p.x2d, p.y2d, p.size * p.scale * 2.5, 0, Math.PI * 2);
+          ctx.fillStyle = `hsla(${p.hue}, 100%, 75%, ${alpha})`;
+          ctx.fill();
+          
+          ctx.strokeStyle = `hsla(${(p.hue + 120) % 360}, 100%, 85%, 0.8)`;
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+        } else {
+          // 普通彩虹微粒子
+          ctx.arc(p.x2d, p.y2d, p.size * p.scale, 0, Math.PI * 2);
+          ctx.fillStyle = `hsla(${p.hue}, 100%, 65%, ${alpha})`;
+          ctx.fill();
+        }
+      }
+      ctx.shadowBlur = 0; // 重置阴影
+
+      // 6. 渲染树顶星 (始终在最顶层)
+      const starScale = fov / (fov + 180);
+      const starY = cy - 238 * starScale;
+      drawCyberStar(ctx, cx, starY, 22, globalHueOffset % 360);
+
+      // 7. 树底座赛博全息环与光束倒影
+      ctx.save();
+      ctx.translate(cx, cy + 205);
+      ctx.scale(1, 0.28); // 压扁成椭圆透视环
+      
+      for (let r = 1; r <= 3; r++) {
+        ctx.beginPath();
+        ctx.arc(0, 0, r * 45, 0, Math.PI * 2);
+        ctx.strokeStyle = `hsla(${(globalHueOffset + r * 60) % 360}, 100%, 60%, ${0.4 / r})`;
+        ctx.lineWidth = 3 / r;
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>
+</body>
+</html>
